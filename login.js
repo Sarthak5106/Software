@@ -1,178 +1,85 @@
-// ========================================
-// ForensicDesk Login Page Script
-// ========================================
+// Current selected role
+var selectedRole = "admin";
 
-document.addEventListener("DOMContentLoaded", function () {
-    const adminBtn = document.getElementById("adminBtn");
-    const investigatorBtn = document.getElementById("investigatorBtn");
-    const loginForm = document.getElementById("loginForm");
-    const emailInput = document.getElementById("email");
-    const passwordInput = document.getElementById("password");
-    const emailError = document.getElementById("emailError");
-    const passwordError = document.getElementById("passwordError");
-    const togglePassword = document.getElementById("togglePassword");
-    const submitBtn = document.getElementById("submitBtn");
-    const btnLoader = document.getElementById("btnLoader");
+// Select Role
+function selectRole(role) {
+    selectedRole = role;
 
-    let selectedRole = "admin";
+    var adminBtn = document.getElementById("adminBtn");
+    var investigatorBtn = document.getElementById("investigatorBtn");
 
-    // ---- Role Selection ----
+    if (role === "admin") {
+        adminBtn.classList.add("active");
+        investigatorBtn.classList.remove("active");
+    } else {
+        investigatorBtn.classList.add("active");
+        adminBtn.classList.remove("active");
+    }
+}
 
-    function selectRole(role) {
-        selectedRole = role;
-        adminBtn.classList.toggle("active", role === "admin");
-        investigatorBtn.classList.toggle("active", role === "investigator");
+// Show Toast Message
+function showToast(message, type) {
+    var toast = document.getElementById("toast");
+    toast.textContent = message;
+    toast.className = "toast " + type + " show";
+
+    setTimeout(function () {
+        toast.className = "toast";
+    }, 3000);
+}
+
+// Handle Login
+function handleLogin(event) {
+    event.preventDefault();
+
+    var email = document.getElementById("email");
+    var password = document.getElementById("password");
+    var emailError = document.getElementById("emailError");
+    var passwordError = document.getElementById("passwordError");
+    var loginBtn = document.getElementById("loginBtn");
+
+    // Clear old errors
+    emailError.textContent = "";
+    passwordError.textContent = "";
+    email.classList.remove("has-error");
+    password.classList.remove("has-error");
+
+    var isValid = true;
+
+    // Email check
+    if (email.value.trim() === "") {
+        emailError.textContent = "Email is required";
+        email.classList.add("has-error");
+        isValid = false;
+    } else if (email.value.indexOf("@") === -1) {
+        emailError.textContent = "Enter a valid email";
+        email.classList.add("has-error");
+        isValid = false;
     }
 
-    adminBtn.addEventListener("click", function () {
-        selectRole("admin");
-    });
-
-    investigatorBtn.addEventListener("click", function () {
-        selectRole("investigator");
-    });
-
-    // ---- Toggle Password Visibility ----
-
-    togglePassword.addEventListener("click", function () {
-        const isPassword = passwordInput.type === "password";
-        passwordInput.type = isPassword ? "text" : "password";
-
-        const eyeOpen = togglePassword.querySelector(".eye-open");
-        const eyeClosed = togglePassword.querySelector(".eye-closed");
-
-        eyeOpen.style.display = isPassword ? "none" : "block";
-        eyeClosed.style.display = isPassword ? "block" : "none";
-    });
-
-    // ---- Validation ----
-
-    function validateEmail(email) {
-        var pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return pattern.test(email);
+    // Password check
+    if (password.value === "") {
+        passwordError.textContent = "Password is required";
+        password.classList.add("has-error");
+        isValid = false;
+    } else if (password.value.length < 6) {
+        passwordError.textContent = "Minimum 6 characters";
+        password.classList.add("has-error");
+        isValid = false;
     }
 
-    function clearErrors() {
-        emailError.textContent = "";
-        passwordError.textContent = "";
-        emailInput.classList.remove("input-error");
-        passwordInput.classList.remove("input-error");
-    }
+    if (!isValid) return;
 
-    function validateForm() {
-        var isValid = true;
-        clearErrors();
+    // Show loading
+    loginBtn.disabled = true;
+    loginBtn.textContent = "Signing in...";
 
-        // Email validation
-        if (!emailInput.value.trim()) {
-            emailError.textContent = "Email address is required";
-            emailInput.classList.add("input-error");
-            isValid = false;
-        } else if (!validateEmail(emailInput.value.trim())) {
-            emailError.textContent = "Please enter a valid email address";
-            emailInput.classList.add("input-error");
-            isValid = false;
-        }
+    // Simulate login
+    setTimeout(function () {
+        loginBtn.disabled = false;
+        loginBtn.textContent = "Sign In";
 
-        // Password validation
-        if (!passwordInput.value) {
-            passwordError.textContent = "Password is required";
-            passwordInput.classList.add("input-error");
-            isValid = false;
-        } else if (passwordInput.value.length < 6) {
-            passwordError.textContent = "Password must be at least 6 characters";
-            passwordInput.classList.add("input-error");
-            isValid = false;
-        }
-
-        return isValid;
-    }
-
-    // Clear individual errors on input
-    emailInput.addEventListener("input", function () {
-        emailError.textContent = "";
-        emailInput.classList.remove("input-error");
-    });
-
-    passwordInput.addEventListener("input", function () {
-        passwordError.textContent = "";
-        passwordInput.classList.remove("input-error");
-    });
-
-    // ---- Toast Notification ----
-
-    function showToast(message, type) {
-        // Remove existing toast
-        var existingToast = document.querySelector(".toast");
-        if (existingToast) {
-            existingToast.remove();
-        }
-
-        var toast = document.createElement("div");
-        toast.className = "toast " + type;
-        toast.textContent = message;
-        document.body.appendChild(toast);
-
-        // Trigger animation
-        requestAnimationFrame(function () {
-            toast.classList.add("visible");
-        });
-
-        // Auto-remove
-        setTimeout(function () {
-            toast.classList.remove("visible");
-            setTimeout(function () {
-                toast.remove();
-            }, 300);
-        }, 3000);
-    }
-
-    // ---- Form Submission ----
-
-    loginForm.addEventListener("submit", function (e) {
-        e.preventDefault();
-
-        if (!validateForm()) {
-            return;
-        }
-
-        // Show loading state
-        submitBtn.disabled = true;
-        btnLoader.classList.add("visible");
-
-        var email = emailInput.value.trim();
-        var role = selectedRole;
-
-        // Simulate authentication request
-        setTimeout(function () {
-            submitBtn.disabled = false;
-            btnLoader.classList.remove("visible");
-
-            // Demo credentials check
-            if (role === "admin" && email === "admin@forensicdesk.com") {
-                showToast("Welcome back, Admin! Redirecting...", "success");
-                setTimeout(function () {
-                    // Redirect to admin dashboard
-                    window.location.href = "admin-dashboard.html";
-                }, 1500);
-            } else if (role === "investigator" && email === "investigator@forensicdesk.com") {
-                showToast("Welcome back, Investigator! Redirecting...", "success");
-                setTimeout(function () {
-                    // Redirect to investigator dashboard
-                    window.location.href = "investigator-dashboard.html";
-                }, 1500);
-            } else {
-                // For demo, accept all valid inputs
-                var displayRole = role.charAt(0).toUpperCase() + role.slice(1);
-                showToast("Signed in as " + displayRole + ". Redirecting...", "success");
-                setTimeout(function () {
-                    if (role === "admin") {
-                        window.location.href = "admin-dashboard.html";
-                    } else {
-                        window.location.href = "investigator-dashboard.html";
-                    }
-                }, 1500);
-            }
-        }, 1500);
-    });
-});
+        var roleName = selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1);
+        showToast("Welcome, " + roleName + "! Redirecting...", "success");
+    }, 1500);
+}
